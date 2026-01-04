@@ -1,4 +1,4 @@
-import * as ts from 'typescript';
+import type * as ts from 'typescript';
 import {
     ExportInfo,
     ImportInfo,
@@ -6,6 +6,25 @@ import {
     FunctionInfo,
     FileEntry,
 } from './types.js';
+
+// Global variable to hold the loaded TypeScript module
+let tsModule: typeof ts;
+
+function loadTypeScript() {
+    if (tsModule) return;
+    try {
+        // Try to load from the user's project first (where the command is run)
+        const userTsPath = require.resolve('typescript', { paths: [process.cwd()] });
+        tsModule = require(userTsPath);
+    } catch (e) {
+        try {
+            // Fallback to our (dev) dependency or global
+            tsModule = require('typescript');
+        } catch (e2) {
+            throw new Error('TypeScript not found. Please install typescript in your project: npm install -D typescript');
+        }
+    }
+}
 
 // Keyword patterns for semantic search
 const KEYWORD_PATTERNS = [
@@ -35,20 +54,22 @@ export class FileParser {
      * Parse a source file and extract semantic information
      */
     parse(filePath: string, content: string): ParsedFileData {
+        loadTypeScript();
+
         const isTsx = filePath.endsWith('.tsx') || filePath.endsWith('.jsx');
         const isTypeScript = filePath.endsWith('.ts') || filePath.endsWith('.tsx');
 
         const language: ParsedFileData['language'] =
             filePath.endsWith('.tsx') ? 'tsx' :
-            filePath.endsWith('.ts') ? 'typescript' :
-            filePath.endsWith('.jsx') ? 'jsx' : 'javascript';
+                filePath.endsWith('.ts') ? 'typescript' :
+                    filePath.endsWith('.jsx') ? 'jsx' : 'javascript';
 
-        const sourceFile = ts.createSourceFile(
+        const sourceFile = tsModule.createSourceFile(
             filePath,
             content,
-            ts.ScriptTarget.Latest,
+            tsModule.ScriptTarget.Latest,
             true,
-            isTsx ? ts.ScriptKind.TSX : isTypeScript ? ts.ScriptKind.TS : ts.ScriptKind.JS
+            isTsx ? tsModule.ScriptKind.TSX : isTypeScript ? tsModule.ScriptKind.TS : tsModule.ScriptKind.JS
         );
 
         const result: ParsedFileData = {
@@ -67,32 +88,32 @@ export class FileParser {
         // Visitor pattern to traverse AST
         const visit = (node: ts.Node) => {
             // Extract exports
-            if (ts.isExportDeclaration(node)) {
+            if (tsModule.isExportDeclaration(node)) {
                 this.extractExportDeclaration(node, result);
-            } else if (ts.isExportAssignment(node)) {
+            } else if (tsModule.isExportAssignment(node)) {
                 this.extractExportAssignment(node, result);
             }
 
             // Check for exported declarations
-            const hasExportModifier = ts.canHaveModifiers(node) &&
-                ts.getModifiers(node)?.some((m: ts.Modifier) => m.kind === ts.SyntaxKind.ExportKeyword);
+            const hasExportModifier = tsModule.canHaveModifiers(node) &&
+                tsModule.getModifiers(node)?.some((m: ts.Modifier) => m.kind === tsModule.SyntaxKind.ExportKeyword);
 
             if (hasExportModifier) {
-                if (ts.isFunctionDeclaration(node) && node.name) {
+                if (tsModule.isFunctionDeclaration(node) && node.name) {
                     result.exports.push({
                         name: node.name.text,
                         type: 'function',
                         line: sourceFile.getLineAndCharacterOfPosition(node.getStart()).line + 1,
                     });
-                } else if (ts.isClassDeclaration(node) && node.name) {
+                } else if (tsModule.isClassDeclaration(node) && node.name) {
                     result.exports.push({
                         name: node.name.text,
                         type: 'class',
                         line: sourceFile.getLineAndCharacterOfPosition(node.getStart()).line + 1,
                     });
-                } else if (ts.isVariableStatement(node)) {
+                } else if (tsModule.isVariableStatement(node)) {
                     node.declarationList.declarations.forEach(decl => {
-                        if (ts.isIdentifier(decl.name)) {
+                        if (tsModule.isIdentifier(decl.name)) {
                             result.exports.push({
                                 name: decl.name.text,
                                 type: 'const',
@@ -100,13 +121,13 @@ export class FileParser {
                             });
                         }
                     });
-                } else if (ts.isTypeAliasDeclaration(node) && node.name) {
+                } else if (tsModule.isTypeAliasDeclaration(node) && node.name) {
                     result.exports.push({
                         name: node.name.text,
                         type: 'type',
                         line: sourceFile.getLineAndCharacterOfPosition(node.getStart()).line + 1,
                     });
-                } else if (ts.isInterfaceDeclaration(node) && node.name) {
+                } else if (tsModule.isInterfaceDeclaration(node) && node.name) {
                     result.exports.push({
                         name: node.name.text,
                         type: 'interface',
@@ -116,7 +137,7 @@ export class FileParser {
             }
 
             // Extract imports
-            if (ts.isImportDeclaration(node)) {
+            if (tsModule.isImportDeclaration(node)) {
                 this.extractImportDeclaration(node, result);
             }
 
@@ -126,10 +147,10 @@ export class FileParser {
             }
 
             // Extract functions
-            if (ts.isFunctionDeclaration(node) && node.name) {
-                const modifiers = ts.canHaveModifiers(node) ? ts.getModifiers(node) : undefined;
-                const isExported = modifiers?.some((m: ts.Modifier) => m.kind === ts.SyntaxKind.ExportKeyword) || false;
-                const isAsync = modifiers?.some((m: ts.Modifier) => m.kind === ts.SyntaxKind.AsyncKeyword) || false;
+            if (tsModule.isFunctionDeclaration(node) && node.name) {
+                const modifiers = tsModule.canHaveModifiers(node) ? tsModule.getModifiers(node) : undefined;
+                const isExported = modifiers?.some((m: ts.Modifier) => m.kind === tsModule.SyntaxKind.ExportKeyword) || false;
+                const isAsync = modifiers?.some((m: ts.Modifier) => m.kind === tsModule.SyntaxKind.AsyncKeyword) || false;
                 result.functions.push({
                     name: node.name.text,
                     line: sourceFile.getLineAndCharacterOfPosition(node.getStart()).line + 1,
@@ -139,21 +160,21 @@ export class FileParser {
             }
 
             // Extract classes
-            if (ts.isClassDeclaration(node) && node.name) {
+            if (tsModule.isClassDeclaration(node) && node.name) {
                 result.classes.push(node.name.text);
             }
 
             // Extract types/interfaces
-            if (ts.isTypeAliasDeclaration(node) && node.name) {
+            if (tsModule.isTypeAliasDeclaration(node) && node.name) {
                 result.types.push(node.name.text);
-            } else if (ts.isInterfaceDeclaration(node) && node.name) {
+            } else if (tsModule.isInterfaceDeclaration(node) && node.name) {
                 result.types.push(node.name.text);
             }
 
             // Extract semantic keywords
             this.extractKeywords(node, keywordSet);
 
-            ts.forEachChild(node, visit);
+            tsModule.forEachChild(node, visit);
         };
 
         visit(sourceFile);
@@ -165,7 +186,7 @@ export class FileParser {
     }
 
     private extractExportDeclaration(node: ts.ExportDeclaration, result: ParsedFileData) {
-        if (node.exportClause && ts.isNamedExports(node.exportClause)) {
+        if (node.exportClause && tsModule.isNamedExports(node.exportClause)) {
             node.exportClause.elements.forEach(element => {
                 result.exports.push({
                     name: element.name.text,
@@ -184,7 +205,7 @@ export class FileParser {
 
     private extractImportDeclaration(node: ts.ImportDeclaration, result: ParsedFileData) {
         const moduleSpecifier = node.moduleSpecifier;
-        if (!ts.isStringLiteral(moduleSpecifier)) return;
+        if (!tsModule.isStringLiteral(moduleSpecifier)) return;
 
         const source = moduleSpecifier.text;
         const names: string[] = [];
@@ -199,11 +220,11 @@ export class FileParser {
 
             // Named imports
             if (node.importClause.namedBindings) {
-                if (ts.isNamedImports(node.importClause.namedBindings)) {
+                if (tsModule.isNamedImports(node.importClause.namedBindings)) {
                     node.importClause.namedBindings.elements.forEach(element => {
                         names.push(element.name.text);
                     });
-                } else if (ts.isNamespaceImport(node.importClause.namedBindings)) {
+                } else if (tsModule.isNamespaceImport(node.importClause.namedBindings)) {
                     names.push(node.importClause.namedBindings.name.text);
                 }
             }
@@ -218,18 +239,18 @@ export class FileParser {
 
     private isComponentDeclaration(node: ts.Node): boolean {
         // Function component
-        if (ts.isFunctionDeclaration(node) && node.name) {
+        if (tsModule.isFunctionDeclaration(node) && node.name) {
             const name = node.name.text;
             return /^[A-Z]/.test(name); // Starts with capital letter
         }
 
         // Arrow function component
-        if (ts.isVariableStatement(node)) {
+        if (tsModule.isVariableStatement(node)) {
             for (const decl of node.declarationList.declarations) {
-                if (ts.isIdentifier(decl.name) && /^[A-Z]/.test(decl.name.text)) {
+                if (tsModule.isIdentifier(decl.name) && /^[A-Z]/.test(decl.name.text)) {
                     if (decl.initializer && (
-                        ts.isArrowFunction(decl.initializer) ||
-                        ts.isFunctionExpression(decl.initializer)
+                        tsModule.isArrowFunction(decl.initializer) ||
+                        tsModule.isFunctionExpression(decl.initializer)
                     )) {
                         return true;
                     }
@@ -238,7 +259,7 @@ export class FileParser {
         }
 
         // Class component
-        if (ts.isClassDeclaration(node) && node.name) {
+        if (tsModule.isClassDeclaration(node) && node.name) {
             const name = node.name.text;
             if (/^[A-Z]/.test(name)) {
                 // Check if it extends React.Component or Component
@@ -264,19 +285,19 @@ export class FileParser {
         let name = '';
         let type: ComponentInfo['type'] = 'function';
 
-        if (ts.isFunctionDeclaration(node) && node.name) {
+        if (tsModule.isFunctionDeclaration(node) && node.name) {
             name = node.name.text;
             type = 'function';
-        } else if (ts.isVariableStatement(node)) {
+        } else if (tsModule.isVariableStatement(node)) {
             for (const decl of node.declarationList.declarations) {
-                if (ts.isIdentifier(decl.name)) {
+                if (tsModule.isIdentifier(decl.name)) {
                     name = decl.name.text;
-                    if (decl.initializer && ts.isArrowFunction(decl.initializer)) {
+                    if (decl.initializer && tsModule.isArrowFunction(decl.initializer)) {
                         type = 'arrow';
                     }
                 }
             }
-        } else if (ts.isClassDeclaration(node) && node.name) {
+        } else if (tsModule.isClassDeclaration(node) && node.name) {
             name = node.name.text;
             type = 'class';
         }
@@ -292,7 +313,7 @@ export class FileParser {
 
     private extractKeywords(node: ts.Node, keywordSet: Set<string>) {
         // Check identifiers
-        if (ts.isIdentifier(node)) {
+        if (tsModule.isIdentifier(node)) {
             const name = node.text;
             for (const pattern of KEYWORD_PATTERNS) {
                 if (pattern.test(name)) {
@@ -303,7 +324,7 @@ export class FileParser {
 
         // CRITICAL FIX: Extract JSX text content (e.g., <Button>Share</Button>)
         // This ensures button labels and other UI text get indexed
-        if (ts.isJsxText(node)) {
+        if (tsModule.isJsxText(node)) {
             const text = node.text.trim();
             if (text.length > 0 && text.length < 30) { // Reasonable length for keywords
                 // Extract individual words
@@ -318,7 +339,7 @@ export class FileParser {
         }
 
         // Check string literals
-        if (ts.isStringLiteral(node)) {
+        if (tsModule.isStringLiteral(node)) {
             const text = node.text;
             for (const pattern of KEYWORD_PATTERNS) {
                 if (pattern.test(text)) {
@@ -334,8 +355,8 @@ export class FileParser {
         }
 
         // Check JSX elements for component names and props
-        if (ts.isJsxElement(node) || ts.isJsxSelfClosingElement(node)) {
-            const tagName = ts.isJsxElement(node)
+        if (tsModule.isJsxElement(node) || tsModule.isJsxSelfClosingElement(node)) {
+            const tagName = tsModule.isJsxElement(node)
                 ? node.openingElement.tagName.getText()
                 : node.tagName.getText();
 
@@ -355,9 +376,9 @@ export function shouldParseFile(filePath: string): boolean {
     const ext = filePath.toLowerCase();
     return (
         (ext.endsWith('.ts') ||
-         ext.endsWith('.tsx') ||
-         ext.endsWith('.js') ||
-         ext.endsWith('.jsx')) &&
+            ext.endsWith('.tsx') ||
+            ext.endsWith('.js') ||
+            ext.endsWith('.jsx')) &&
         !ext.includes('.test.') &&
         !ext.includes('.spec.') &&
         !ext.endsWith('.d.ts')
