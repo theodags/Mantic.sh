@@ -26,7 +26,27 @@ const IGNORE_PATTERNS = [
     '**/Movies/**',
     '**/Desktop/**',
     '**/Documents/**', // Only if nested deeply
-    '**/.mantic/**' // Ignore our own cache directory
+    '**/.mantic/**', // Ignore our own cache directory
+    // Python
+    '**/venv/**',
+    '**/.venv/**',
+    '**/__pycache__/**',
+    '**/*.pyc',
+    '**/*.egg-info/**',
+    // Rust
+    '**/target/**',
+    '**/.cargo/**',
+    // Go
+    '**/vendor/**',
+    // General
+    '**/tmp/**',
+    '**/temp/**',
+    '**/coverage/**',
+    '**/.idea/**',
+    '**/.vscode/**',
+    '**/*.min.js',
+    '**/*.min.css',
+    '**/*.map'
 ];
 
 // Intent-based filtering: map categories to directory patterns
