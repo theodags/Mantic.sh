@@ -150,63 +150,26 @@ const IMPORTANT_CONFIG_FILES = new Set([
  * These should be deprioritized in search results
  */
 const NON_IMPLEMENTATION_PATTERNS = [
-    /\/docs?\//i,           // Documentation directories
-    /\/test(s)?\//i,        // Test directories
-    /\/e2e\//i,             // E2E test directories
-    /\/__tests__\//i,       // Jest test directories
-    /\/playwright\//i,      // Playwright test directories
-    /\/cypress\//i,         // Cypress test directories
-    /\.test\./i,            // Test files
-    /\.spec\./i,            // Spec files
-    /\.e2e\./i,             // E2E test files
-    /\/__mocks__\//i,       // Mock directories
-    /\/examples?\//i,       // Example directories
-    /\/storybook\//i,       // Storybook directories
+    '/docs/', '/doc/', '/test/', '/tests/', '/e2e/', '/__tests__/',
+    '/playwright/', '/cypress/', '/__mocks__/', '/examples/', '/storybook/',
+    '.test.', '.spec.', '.e2e.'
 ];
 
-/**
- * Implementation directory boost patterns
- * Files in these directories are more likely to be implementation files
- */
 const IMPLEMENTATION_DIRECTORY_PATTERNS = [
-    /\/src\//i,
-    /\/lib\//i,
-    /\/modules?\//i,
-    /\/services?\//i,
-    /\/api\//i,
-    /\/server\//i,
-    /\/core\//i,
-    /\/features?\//i,
+    '/src/', '/lib/', '/module/', '/modules/', '/service/', '/services/',
+    '/api/', '/server/', '/core/', '/feature/', '/features/'
 ];
 
-/**
- * Generic/boilerplate file patterns (MACHINE MODE: Deprioritize for agents)
- * These files are often entry points but rarely contain business logic
- */
 const GENERIC_FILE_PATTERNS = [
-    /\/page\.tsx?$/i,           // Next.js pages (usually just imports)
-    /\/layout\.tsx?$/i,         // Next.js layouts
-    /\/route\.tsx?$/i,          // Next.js API routes (prefer actual handlers)
-    /\/index\.(ts|js|tsx|jsx)$/i, // Index files (usually re-exports)
-    /\/app\.tsx?$/i,            // App entry points
-    /\/main\.(ts|js)$/i,        // Main entry points
+    '/page.tsx', '/page.ts', '/layout.tsx', '/layout.ts',
+    '/route.tsx', '/route.ts', '/index.ts', '/index.tsx', '/index.js',
+    '/app.tsx', '/app.ts', '/main.ts', '/main.js'
 ];
 
-/**
- * Business logic file patterns (MACHINE MODE: Prioritize for agents)
- * These files typically contain the core implementation
- */
 const BUSINESS_LOGIC_PATTERNS = [
-    /\/service\.(ts|js)$/i,
-    /\/controller\.(ts|js)$/i,
-    /\/handler\.(ts|js)$/i,
-    /\/repository\.(ts|js)$/i,
-    /\/manager\.(ts|js)$/i,
-    /\/provider\.(ts|js)$/i,
-    /\/helper\.(ts|js)$/i,
-    /\/util(s|ity)\.(ts|js)$/i,
-    /\/model\.(ts|js)$/i,
-    /\/schema\.(ts|js)$/i,
+    '.service.', '.controller.', '.handler.', '.repository.',
+    '.manager.', '.provider.', '.helper.', '.util.', '.utils.',
+    '.model.', '.schema.'
 ];
 
 export class BrainInspiredScorer {
@@ -265,26 +228,21 @@ export class BrainInspiredScorer {
         const weights = INTENT_DIRECTORY_WEIGHTS[intent] || INTENT_DIRECTORY_WEIGHTS['general'];
         let score = 0.0;
 
-        // Extract directory parts
-        const parts = filepath.split('/');
-        const dirs = parts.slice(0, -1); // All except filename
+        // Optimization: Use includes() instead of split() to avoid allocation
+        // This is much faster for large file sets (millions of checks)
+        for (const [weightedDir, weight] of Object.entries(weights)) {
+            // weightedDir is usually "components/" or "api/"
+            // Check if filepath contains this directory segment
+            // We search for "/name/" to ensure it's a directory segment
+            // Also handle start of path (e.g. "components/...")
 
-        // For monorepos, check if any directory segment matches our patterns
-        // Don't heavily penalize depth since monorepos are naturally deep
-        for (const dir of dirs) {
-            // Check if this directory segment matches any of our weighted directories
-            for (const [weightedDir, weight] of Object.entries(weights)) {
-                const dirName = weightedDir.replace(/\//g, ''); // Remove slashes for comparison
+            // Normalize weightedDir to remove trailing slash for search
+            const dirName = weightedDir.replace(/\/$/, '');
 
-                // Exact segment match (e.g., "api" matches "api")
-                if (dir === dirName) {
-                    score += weight; // Full weight for direct match
-                }
-                // Partial match (e.g., "apis" contains "api")
-                else if (dir.includes(dirName) && dirName.length > 2) {
-                    score += weight * 0.5; // Half weight for partial match
-                }
+            if (filepath.includes('/' + dirName + '/') || filepath.startsWith(dirName + '/')) {
+                score += weight;
             }
+            // Partial match fallback (less strict, but maybe too slow? skip for now for speed)
         }
 
         return score;
@@ -337,11 +295,12 @@ export class BrainInspiredScorer {
         statsCache?: Map<string, Stats>
     ): Promise<number> {
         let score = 0;
+        const lowerPath = filepath.toLowerCase();
 
         // 1. Check if this is a non-implementation file (docs, tests, etc.)
         let isNonImplementation = false;
         for (const pattern of NON_IMPLEMENTATION_PATTERNS) {
-            if (pattern.test(filepath)) {
+            if (lowerPath.includes(pattern)) {
                 isNonImplementation = true;
                 break;
             }
@@ -376,7 +335,7 @@ export class BrainInspiredScorer {
         // Boost files in core implementation directories
         if (!isNonImplementation) { // Only boost if not already penalized
             for (const pattern of IMPLEMENTATION_DIRECTORY_PATTERNS) {
-                if (pattern.test(filepath)) {
+                if (lowerPath.includes(pattern)) {
                     score += 40; // Strong boost for implementation files
                     break; // Only apply boost once
                 }
@@ -512,27 +471,35 @@ export class BrainInspiredScorer {
         intent: IntentCategory
     ): number {
         let score = 0;
+        const lowerPath = filepath.toLowerCase();
 
         // 1. Check if this is a non-implementation file
         let isNonImplementation = false;
         for (const pattern of NON_IMPLEMENTATION_PATTERNS) {
-            if (pattern.test(filepath)) {
+            if (lowerPath.includes(pattern)) {
                 isNonImplementation = true;
                 break;
             }
         }
 
+        // Pre-compile keyword regexes for performance (CRITICAL for large repos)
+        const keywordRegexes = keywords.map(kw => ({
+            kw: kw.toLowerCase(),
+            regex: new RegExp(`\\b${kw.toLowerCase()}\\b`)
+        }));
+
         // 2. Filename keyword matching
         const filename = path.basename(filepath).toLowerCase();
         const filenameNoExt = filename.replace(path.extname(filename), '');
+        // Replace separators once
+        const normalizedName = filenameNoExt.replace(/[-_]/g, ' ');
 
-        for (const keyword of keywords) {
-            const kw = keyword.toLowerCase();
+        for (const { kw, regex } of keywordRegexes) {
             if (filenameNoExt === kw) {
                 score += isNonImplementation ? 10 : 100;
             } else if (filename.includes(kw)) {
                 score += isNonImplementation ? 5 : 50;
-            } else if (new RegExp(`\\b${kw}\\b`).test(filenameNoExt.replace(/[-_]/g, ' '))) {
+            } else if (regex.test(normalizedName)) {
                 score += isNonImplementation ? 3 : 30;
             }
         }
@@ -544,7 +511,7 @@ export class BrainInspiredScorer {
         // 4. Implementation boost
         if (!isNonImplementation) {
             for (const pattern of IMPLEMENTATION_DIRECTORY_PATTERNS) {
-                if (pattern.test(filepath)) {
+                if (lowerPath.includes(pattern)) {
                     score += 40;
                     break;
                 }
@@ -556,14 +523,14 @@ export class BrainInspiredScorer {
         let isBusinessLogic = false;
 
         for (const pattern of GENERIC_FILE_PATTERNS) {
-            if (pattern.test(filepath)) {
+            if (lowerPath.includes(pattern)) {
                 isGenericFile = true;
                 break;
             }
         }
 
         for (const pattern of BUSINESS_LOGIC_PATTERNS) {
-            if (pattern.test(filepath)) {
+            if (lowerPath.includes(pattern)) {
                 isBusinessLogic = true;
                 break;
             }
