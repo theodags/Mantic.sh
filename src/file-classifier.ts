@@ -47,6 +47,16 @@ const CONFIG_PATTERNS = [
     /\.editorconfig$/,
 ];
 
+// Test configuration patterns (should be classified as 'test', not 'config')
+const TEST_CONFIG_PATTERNS = [
+    /vitest\.config/i,
+    /vitest\.workspace/i,
+    /jest\.config/i,
+    /setupVitest/i,
+    /setupJest/i,
+    /setupTests/i,
+];
+
 // Generated file patterns
 const GENERATED_PATTERNS = [
     /\.lock$/,
@@ -83,6 +93,14 @@ export function classifyFile(filepath: string): FileType {
 
     // Check test files
     for (const pattern of TEST_PATTERNS) {
+        if (pattern.test(filepath)) {
+            return 'test';
+        }
+    }
+
+    // Check test configuration files (vitest.config.ts, setupVitest.ts, etc.)
+    // These should be classified as 'test', not 'config'
+    for (const pattern of TEST_CONFIG_PATTERNS) {
         if (pattern.test(filepath)) {
             return 'test';
         }
