@@ -52,21 +52,12 @@ export async function processRequest(userPrompt: string, options: any): Promise<
                     ?.lines?.map(l => ({ line: l.line, content: l.content, keyword: l.keyword })),
                 metadata: sf.metadata // Pass through progressive disclosure metadata
             };
-        }) || projectContext.fileStructure.map((file, index) => {
-            const fileType = classifyFile(file);
-            return {
-                path: file,
-                score: 100 - index,
-                matchedConstraints: ['intent-filtered'],
-                isImported: false,
-                isExported: false,
-                fileType,
-                matchedLines: projectContext.fileLocations
-                    ?.find(fl => fl.path === file)
-                    ?.lines?.map(l => ({ line: l.line, content: l.content, keyword: l.keyword })),
-                metadata: undefined // Fallback path doesn't have progressive disclosure
-            };
         });
+
+        // If scoredFiles is missing, something went wrong in the scanner
+        if (!scoredFiles || scoredFiles.length === 0) {
+            throw new Error('Scanner failed to produce scored files. This is a bug.');
+        }
 
         // Apply context filters
         const filterType: FileType | null = options.code ? 'code'
