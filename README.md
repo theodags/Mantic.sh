@@ -1,174 +1,175 @@
 # Mantic
+
 [![npm version](https://img.shields.io/npm/v/mantic.sh.svg?style=flat-square)](https://www.npmjs.com/package/mantic.sh)
 [![Install in Cursor](https://img.shields.io/badge/Cursor-Install-000000?style=flat-square&logo=cursor&logoColor=white)](https://cursor.com/en/install-mcp?name=mantic&config=eyJ0eXBlIjogInN0ZGlvIiwgImNvbW1hbmQiOiAibnB4IiwgImFyZ3MiOiBbIi15IiwgIm1hbnRpYy5zaEBsYXRlc3QiLCAic2VydmVyIl19)
 [![Install in VS Code](https://img.shields.io/badge/VS%20Code-Install-007ACC?style=flat-square&logo=visual-studio-code&logoColor=white)](https://vscode.dev/redirect/mcp/install?name=mantic&config=%7B%22type%22%3A%20%22stdio%22%2C%20%22command%22%3A%20%22npx%22%2C%20%22args%22%3A%20%5B%22-y%22%2C%20%22mantic.sh%40latest%22%2C%20%22server%22%5D%7D)
 [![Agent Rules](https://img.shields.io/badge/Agent%20Rules-Copy%20Config-8A2BE2?style=flat-square&logo=robot&logoColor=white)](https://github.com/marcoaapfortes/Mantic.sh/blob/main/AGENT_RULES.md)
 
-**The reference implementation of cognitive code search.**
+A structural code search engine for AI agents. Provides sub-500ms file ranking across massive codebases without embeddings, vector databases, or external dependencies.
 
-> "Embeddings are an expensive workaround for missing structure." — *The Mantic Manifesto*
+## What's New in v1.0.6 🚀
 
-Mantic is the infrastructure layer that removes unnecessary thinking from AI agents. It does not read your code; it infers intent from structure, enabling sub-300ms retrieval without heavy indexing or vector databases.
+- **Git Accelerator**: Replaced file walker with direct `git ls-files` integration.
+- **14x Performance Boost**: Chromium repo scan improved from ~6.6s to **0.46s**.
+- **Smart Heuristics**: optimized untracked file scanning for massive repositories.
 
-## 🤖 Agent Rules (Auto-Pilot)
-Want Cursor or Claude to use Mantic automatically? [**Copy these Agent Rules**](https://github.com/marcoaapfortes/Mantic.sh/blob/main/AGENT_RULES.md).
+## Table of Contents
 
-## Why Mantic Exists
+- [About the Project](#about-the-project)
+- [Proprietary vs Mantic](#proprietary-vs-mantic-cost-analysis)
+- [Features](#features)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Agent Rules](#agent-rules-auto-pilot)
+- [Performance](#performance)
+- [How It Works](#how-it-works)
+- [License](#license)
 
-In 2026, AI agents write 40%+ of enterprise code. But they are bottlenecked by context retrieval:
-- **Vector search is slow** (300-1000ms) and expensive ($0.003/query).
-- **Grep is dumb**; it lacks ranking, causing agents to read 50+ irrelevant files.
-- **Agents waste 80% of tokens** reading the wrong context.
+## About the Project
 
-Mantic fixes this by making context retrieval **faster than human reaction time** (sub-300ms) without sacrificing accuracy.
+Mantic is an infrastructure layer designed to remove unnecessary context retrieval overhead for AI agents. It infers intent from file structure and metadata rather than brute-force reading content, enabling retrieval speeds faster than human reaction time.
 
-## Performance Comparison (Cal.com Monorepo)
+### Key Benefits
 
-| Tool | Search Time | Setup | Dependencies |
-|------|------------|-------|--------------|
-| **Mantic** | **72ms** | **None** | **Zero** |
-| Sourcegraph Cody | 850ms | Vector DB | OpenAI API |
-| Claude Context | 420ms | Embeddings | Vector DB |
-| grep/ripgrep | 1200ms | None | Zero (no ranking) |
+- **Speed**: Retrieval is consistently under 500ms, even for large repositories.
+- **Efficiency**: Reduces token usage by up to 63% by filtering irrelevant files before reading.
+- **Privacy**: Runs entirely locally with zero data egress.
 
-*Benchmarks run on a 9,621 file monorepo (M2 Max).*
+### Proprietary vs Mantic (Cost Analysis)
 
-## The 20-Watt Insight
+For a team of 100 developers performing 100 searches per day:
 
-The human brain does not brute force. It does not embed every line of code it sees. It triages, infers, and prunes aggressively based on structure **before** it even reads a single line.
-
-Mantic formalizes this biological efficiency into deterministic infrastructure:
-1.  **Structural Inference (72ms)**: We analyze file paths, names, and dependency graphs first.
-2.  **Semantic Verification (Optional)**: We only read code when the structural signal is ambiguous.
-
-This "metadata-first" approach is why Mantic is **6× faster** than embedding-based alternatives.
+| Tool | Annual Cost | Per-Search Cost | Privacy |
+|------|---|---|---|
+| **Mantic** | **$0** | **$0** | **Local-First** |
+| Vector Embeddings | $10,950 | $0.003 | Cloud |
+| SaaS Alternatives | $109,500 | $0.003 | Cloud |
 
 ## Features
 
-- **Mantic Signal Extraction** - Zero-read scoring that isolates signal from noise
-- **Deterministic Axioms** - Guaranteed consistent outputs via stable sorting
-- **Impact Verification** - Understand blast radius before generating code
-- **Session Memory** - Context carryover across multi-turn conversations
-- **Intent Detection** - Automatically categorizes queries (UI, backend, auth, etc.)
-- **Progressive Disclosure** - Rich metadata including size, confidence, and modification dates
-- **Model Context Protocol (MCP)** - Native integration with Claude Desktop and Cursor
-- **Hallucination Detection** - Validates that referenced entities actually exist in your codebase
+- **Sub-500ms retrieval** on large monorepos (Chromium: 480k files).
+- **Zero external dependencies** (no API keys, no databases).
+- **Git-native file scanning** (prioritizes tracked files).
+- **Deterministic scoring** (consistent, predictable results).
+- **Native MCP support** (works with Claude Desktop, Cursor).
+- **Impact analysis** (identifies potential blast radius of changes).
 
-## Quick Start
+## Installation
 
-### Installation
+### Quick Start
 
 ```bash
+# Run without installation
+npx mantic.sh@latest "your search query"
+```
+
+**Install for Tools:**
+- [Install in Cursor](https://cursor.com/en/install-mcp?name=mantic&config=eyJ0eXBlIjogInN0ZGlvIiwgImNvbW1hbmQiOiAibnB4IiwgImFyZ3MiOiBbIi15IiwgIm1hbnRpYy5zaEBsYXRlc3QiLCAic2VydmVyIl19)
+- [Install in VS Code](https://vscode.dev/redirect/mcp/install?name=mantic&config=%7B%22type%22%3A%20%22stdio%22%2C%20%22command%22%3A%20%22npx%22%2C%20%22args%22%3A%20%5B%22-y%22%2C%20%22mantic.sh%40latest%22%2C%20%22server%22%5D%7D)
+
+**From Source**:
+
+```bash
+git clone https://github.com/marcoaapfortes/Mantic.sh.git
+cd Mantic.sh
 npm install
 npm run build
+npm link
 ```
 
-### Basic Usage
+## Usage
+
+### Basic Search
+
+Find files matching your intent:
 
 ```bash
-# Search your codebase (The Mantic Way)
 mantic "stripe payment integration"
-
-# Filter by signal type
-mantic "authentication logic" --code
-mantic "environment variables" --config
-
-# Verify impact
-mantic "user service" --impact
 ```
+*Returns JSON with ranked files, confidence scores, and token estimates.*
+
+### CLI Options
+
+```bash
+mantic <query> [options]
+
+Options:
+  --code          Only search code files (.ts, .js, etc)
+  --config        Only search config files
+  --test          Only search test files
+  --json          Output as JSON (default)
+  --files         Output as newline-separated file paths
+  --impact        Include dependency analysis
+  --session <id>  Use session for context carryover
+```
+
+## Agent Rules (Auto-Pilot)
+
+Want Cursor or Claude to use Mantic automatically?
+
+1. Copy the [Agent Rules](AGENT_RULES.md).
+2. Paste them into your AI tool's system prompt or "Rules for AI" section.
+3. The Agent will now automatically use `mantic` to find context before writing code.
+
+## Performance
+
+### Latency Benchmarks (M1 Pro)
+
+| Codebase | Files | Size | Mantic | Vector Search | Improvement |
+|----------|-------|------|--------|---|---|
+| Cal.com | 9,621 | ~500MB | 0.32s | 0.85s | **2.7x faster** |
+| Chromium | 480,000 | 59GB | 0.46s | 5-10s | **11-22x faster** |
 
 ## How It Works
 
-### Architecture
+### Architecture Overview
 
 ```
 User Query
     ↓
-Intent Analyzer → Category (UI/backend/auth) + Keywords
+Intent Analyzer (categorizes: UI/backend/auth/etc)
     ↓
-Brain Scorer → Ranks files using metadata (no file reads)
+Brain Scorer (ranks files using metadata)
     ↓
-File Classifier → Filters by type (code/config/test)
+File Classifier (filters by type: code/config/test)
     ↓
-Impact Analyzer → Calculates blast radius (optional)
+Impact Analyzer (calculates blast radius)
     ↓
-Output
+Output (JSON/Files/Markdown/MCP)
 ```
 
-### Brain-Inspired Scoring
+### Core Algorithm
 
-Files are ranked using a multi-constraint scoring system that considers:
+1. **Intent Recognition**: Analyzes query to determine code category (e.g., "auth", "ui").
+2. **File Enumeration**: Uses `git ls-files` for tracked files (significantly faster than standard traversals).
+3. **Structural Scoring**: Ranks files based on:
+   - **Path relevance**: `packages/features/payments` indicates high signal.
+   - **Filename matching**: `stripe.service.ts` > `stripe.txt`.
+   - **Business logic awareness**: `.service.ts` boosted over `.test.ts`.
+   - **Boilerplate penalties**: `index.ts` or `page.tsx` ranked lower to reduce noise.
+4. **Confidence Scoring**: Assigns a relevance score to each result.
 
-- **Intent matching** - How well the file matches the query intent
-- **Path relevance** - File location and naming patterns
-- **Business logic signals** - Boosts for `.service.ts`, `.handler.ts`, `.controller.ts`
-- **Boilerplate penalties** - Reduces rank for `index.ts`, `page.tsx`, `layout.tsx`
-- **Session context** - Boosts for previously viewed files
+## Configuration
 
-## CLI Reference
+Mantic works out of the box with zero configuration for most projects.
 
-### Search Command
+### Environment Variables
 
 ```bash
-mantic <query> [options]
+MANTIC_MAX_FILES=5000        # Maximum files to scan
+MANTIC_TIMEOUT=5000          # Search timeout in ms
+MANTIC_IGNORE_PATTERNS=...   # Custom glob patterns to ignore
 ```
-
-**Output Formats:**
-- `--json` - Structured JSON with scores and metadata (default)
-- `--files` - Newline-separated file paths
-- `--mcp` - Model Context Protocol format
-
-**Advanced Features:**
-- `--impact` - Include dependency graph and blast radius analysis
-- `--session <id>` - Use session for context carryover
-
-## Model Context Protocol (MCP)
-
-Mantic provides an MCP server for integration with Claude Desktop and other MCP clients.
-
-### Setup
-- [**Install on Cursor**](https://cursor.com/en/install-mcp?name=mantic&config=eyJ0eXBlIjoic3RkaW8iLCJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIm1hbnRpYy5zaEBsYXRlc3QiLCJzZXJ2ZXIiXX0=)
-- [**Install on VS Code**](https://vscode.dev/redirect/mcp/install?name=mantic&config=%7B%22type%22%3A%20%22stdio%22%2C%20%22command%22%3A%20%22npx%22%2C%20%22args%22%3A%20%5B%22-y%22%2C%20%22mantic.sh%40latest%22%2C%20%22server%22%5D%7D)
-
-### Manual Setup (Claude Desktop)
-Add to `claude_desktop_config.json`:
-```json
-{
-  "mcpServers": {
-    "mantic": {
-      "command": "npx",
-      "args": ["-y", "mantic.sh@latest", "server"]
-    }
-  }
-}
-```
-
-## Performance Optimization
-
-Mantic is optimized for speed:
-- **Metadata-only scoring** - No file reads during ranking
-- **Parallel I/O** - Concurrent file stat operations
-- **Smart caching** - Reuses previous scan results
-- **Intent-based filtering** - Reduces search space based on query type
-
-## Supported Project Types
-
-Mantic automatically detects and optimizes for:
-- TypeScript/JavaScript (Next.js, React, Node.js)
-- Python, Go, Rust
 
 ## License
 
-**AGPL-3.0**
+Mantic is licensed under the **AGPL-3.0 License**.
 
-Mantic is open source software.
+### Usage Guidelines
 
-- **Free for individuals**: You can use it freely for personal projects.
-- **Free for internal business use**: Companies can use it internally without cost.
-- **Commercial Usage**: If you embed Mantic in a commercial product (SaaS, AI agent, dev tool) or distribute it, you must either:
-    1.  Open source your code under AGPL-3.0.
-    2.  Purchase a commercial license (contact: license@mantic.sh).
+- **Free for:** Individual developers, open source projects, and internal business use.
+- **License required for:** Commercial embedding in products you sell or offering Mantic as a hosted service.
 
-## Built For
+**Commercial Inquiries:** [license@mantic.sh](mailto:license@mantic.sh)
 
-The machine-first era of coding. Built by developers, for AI agents.
+See [LICENSE](LICENSE) file for full details.
