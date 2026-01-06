@@ -50,6 +50,51 @@ const IGNORE_PATTERNS = [
     '**/*.map'
 ];
 
+/**
+ * Get ignore patterns, including MANTIC_IGNORE_PATTERNS from env
+ */
+function getIgnorePatterns(): string[] {
+    const envPatterns = process.env.MANTIC_IGNORE_PATTERNS;
+    if (!envPatterns) {
+        return IGNORE_PATTERNS;
+    }
+
+    const additionalPatterns = envPatterns
+        .split(',')
+        .map(p => p.trim())
+        .filter(p => p.length > 0);
+
+    return [...IGNORE_PATTERNS, ...additionalPatterns];
+}
+
+/**
+ * Get maximum files to return from env or default
+ */
+function getMaxFiles(): number {
+    const envValue = process.env.MANTIC_MAX_FILES;
+    if (envValue) {
+        const parsed = parseInt(envValue, 10);
+        if (!isNaN(parsed) && parsed > 0) {
+            return parsed;
+        }
+    }
+    return 300; // Default
+}
+
+/**
+ * Get timeout in milliseconds from env or default
+ */
+function getTimeout(): number {
+    const envValue = process.env.MANTIC_TIMEOUT;
+    if (envValue) {
+        const parsed = parseInt(envValue, 10);
+        if (!isNaN(parsed) && parsed > 0) {
+            return parsed;
+        }
+    }
+    return 5000; // Default 5 seconds
+}
+
 // Intent-based filtering: map categories to directory patterns
 const INTENT_TO_PATHS: Record<IntentCategory, string[]> = {
     UI: ['components/**', 'src/components/**', 'app/**/*.tsx', 'pages/**/*.tsx', '**/ui/**'],
@@ -84,7 +129,7 @@ async function estimateFileCount(cwd: string): Promise<number> {
 
     const stream = fg.stream(['**/*'], {
         cwd,
-        ignore: IGNORE_PATTERNS,
+        ignore: getIgnorePatterns(),
         dot: true,
         onlyFiles: true,
         suppressErrors: true,
@@ -135,8 +180,9 @@ async function saveSessionContext(cwd: string, context: SessionContext): Promise
 /**
  * Scans the current directory to build the ProjectContext.
  * Now with optional caching support for faster subsequent runs.
+ * This is the internal implementation - use scanProject() for timeout support.
  */
-export async function scanProject(
+async function scanProjectInternal(
     cwd: string = process.cwd(),
     options: ScanOptions = {}
 ): Promise<ProjectContext> {
@@ -155,7 +201,7 @@ export async function scanProject(
 
     // If cache disabled or semantics not needed, use fast legacy scan
     if (!useCache || !parseSemantics) {
-        return scanProjectLegacy(cwd, intentAnalysis, onProgress, sessionBoosts);
+        return scanProjectLegacyInternal(cwd, intentAnalysis, onProgress, sessionBoosts);
     }
 
     const startTime = Date.now();
@@ -179,7 +225,7 @@ export async function scanProject(
 
     // Skip to legacy scan if lazy mode enabled
     if (shouldUseLazyMode) {
-        return scanProjectLegacy(cwd, intentAnalysis, onProgress, sessionBoosts);
+        return scanProjectLegacyInternal(cwd, intentAnalysis, onProgress, sessionBoosts);
     }
 
     // Try to load cache
@@ -211,7 +257,23 @@ export async function scanProject(
     // GIT ACCELERATOR: Use git ls-files if available (50x faster)
     if (isGitRepo(cwd)) {
         try {
-            files = getGitFiles(cwd);
+            const gitFiles = getGitFiles(cwd);
+            // Apply ignore patterns to git files (since git files include everything git tracks)
+            // But we might want to respect MANTIC_IGNORE_PATTERNS even for git files
+            const ignorePatterns = getIgnorePatterns();
+            // We only need to filter if there are custom patterns or if we want to enforce default ignores on git files
+            // (Usually gitignore handles default ignores, but MANTIC_IGNORE_PATTERNS are extra)
+
+            if (process.env.MANTIC_IGNORE_PATTERNS) {
+                files = gitFiles.filter(file => !matchesAnyPattern(file, ignorePatterns));
+            } else {
+                // Default behavior: trust gitignore for git files, but maybe we still want to filter our internal ignores?
+                // The original code didn't filter git files with IGNORE_PATTERNS. 
+                // It just used getGitFiles(cwd).
+                // IF we want to support MANTIC_IGNORE_PATTERNS, we MUST filter.
+                files = gitFiles.filter(file => !matchesAnyPattern(file, ignorePatterns));
+            }
+
             progress(`Using Git Accelerator (${files.length.toLocaleString()} files)`);
         } catch {
             // Fallback to fast-glob
@@ -365,7 +427,8 @@ export async function scanProject(
         }
 
         const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
-        const finalCount = files.slice(0, 300).length;
+        const maxFiles = getMaxFiles();
+        const finalCount = files.slice(0, maxFiles).length;
         progress(`Scan complete (${finalCount} files in ${elapsed}s)`);
 
         // SAVE SESSION CONTEXT for next request
@@ -388,8 +451,8 @@ export async function scanProject(
         // Return ProjectContext with filtered files, metadata, and exact locations!
         return {
             techStack: cache.techStack,
-            fileStructure: files.slice(0, 300),
-            scoredFiles: scoredFiles.slice(0, 300).map(sf => ({
+            fileStructure: files.slice(0, maxFiles),
+            scoredFiles: scoredFiles.slice(0, maxFiles).map(sf => ({
                 path: sf.path,
                 score: sf.score,
                 reasons: sf.matchedConstraints
@@ -416,14 +479,15 @@ export async function scanProject(
         .map(f => f.path);
 
     const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
-    const finalCount = files.slice(0, 300).length;
+    const maxFiles = getMaxFiles();
+    const finalCount = files.slice(0, maxFiles).length;
     progress(`Scan complete (${finalCount} files in ${elapsed}s)`);
 
     // Return ProjectContext with brain scorer results
     return {
         techStack: cache.techStack,
-        fileStructure: files.slice(0, 300),
-        scoredFiles: scoredFiles.slice(0, 300).map(sf => ({
+        fileStructure: files.slice(0, maxFiles),
+        scoredFiles: scoredFiles.slice(0, maxFiles).map(sf => ({
             path: sf.path,
             score: sf.score,
             reasons: sf.reasons
@@ -437,10 +501,11 @@ export async function scanProject(
 /**
  * Legacy scan without caching (original implementation)
  * Used when caching is disabled or semantic parsing not needed
+ * This is the internal implementation - use scanProjectLegacy() for timeout support.
  *
  * NOW WITH BRAIN-INSPIRED SCORING - achieves 0.3s on monorepos!
  */
-async function scanProjectLegacy(
+async function scanProjectLegacyInternal(
     cwd: string,
     intentAnalysis?: IntentAnalysis,
     onProgress?: (msg: string) => void,
@@ -458,7 +523,10 @@ async function scanProjectLegacy(
     // GIT ACCELERATOR: Use git ls-files if available (50x faster)
     if (isGitRepo(cwd)) {
         try {
-            files = getGitFiles(cwd);
+            const gitFiles = getGitFiles(cwd);
+            // Apply ignore patterns
+            const ignorePatterns = getIgnorePatterns();
+            files = gitFiles.filter(file => !matchesAnyPattern(file, ignorePatterns));
         } catch {
             // Fallback
         }
@@ -467,7 +535,7 @@ async function scanProjectLegacy(
     if (files.length === 0) {
         files = await fg(['**/*'], {
             cwd,
-            ignore: IGNORE_PATTERNS,
+            ignore: getIgnorePatterns(),
             dot: true,
             onlyFiles: true,
             suppressErrors: true,
@@ -507,7 +575,7 @@ async function scanProjectLegacy(
             progress(`Brain scoring: ${files.length} → ${scoredFiles.length} files`);
         } else {
             // No keywords - just take first 300 files
-            limitedFiles = files.slice(0, 300);
+            limitedFiles = files.slice(0, getMaxFiles());
             progress(`Using first 300 files (no keywords provided)`);
         }
     } else {
@@ -528,7 +596,7 @@ async function scanProjectLegacy(
             progress(`Brain scoring: ${files.length} → ${scoredFiles.length} files`);
         } else {
             // No keywords at all - just take first 300 files
-            limitedFiles = files.slice(0, 300);
+            limitedFiles = files.slice(0, getMaxFiles());
             progress(`Using first 300 files (no keywords provided)`);
         }
     }
@@ -573,7 +641,7 @@ async function scanProjectLegacy(
     return {
         techStack,
         fileStructure: limitedFiles,
-        scoredFiles: scoredFilesWithScores, // NEW: Include brain scorer scores with metadata
+        scoredFiles: scoredFilesWithScores?.slice(0, getMaxFiles()), // Limit to max files
         openFiles: []
     };
 }
@@ -740,12 +808,22 @@ async function filterFilesByIntent(
 function matchesAnyPattern(filePath: string, patterns: string[]): boolean {
     return patterns.some(pattern => {
         // Convert glob pattern to regex
-        const regexPattern = pattern
-            .replace(/\*\*/g, '___DOUBLESTAR___')
-            .replace(/\*/g, '[^/]*')
-            .replace(/___DOUBLESTAR___/g, '.*')
-            .replace(/\?/g, '.')
-            .replace(/\./g, '\\.');
+        // Use placeholders to protect glob patterns from dot escaping
+        let regexPattern = pattern
+            .replace(/\*\*\//g, '___GLOBSTARSLASH___')
+            .replace(/\*\*/g, '___GLOBSTAR___')
+            .replace(/\*/g, '___STAR___')
+            .replace(/\?/g, '___QUESTION___');
+
+        // Now escape dots in the actual path parts
+        regexPattern = regexPattern.replace(/\./g, '\\.');
+
+        // Replace placeholders with regex equivalents
+        regexPattern = regexPattern
+            .replace(/___GLOBSTARSLASH___/g, '(?:.*/)?') // **/ matches optional directory prefix
+            .replace(/___GLOBSTAR___/g, '.*')             // ** matches any path
+            .replace(/___STAR___/g, '[^/]*')              // * matches anything except /
+            .replace(/___QUESTION___/g, '.');             // ? matches single char
 
         const regex = new RegExp(`^${regexPattern}$`);
         return regex.test(filePath);
@@ -818,4 +896,70 @@ function reportIntentFindings(
     }
 
     return null;
+}
+
+/**
+ * Public wrapper for scanProject with timeout support
+ */
+export async function scanProject(
+    cwd: string = process.cwd(),
+    options: ScanOptions = {}
+): Promise<ProjectContext> {
+    const timeout = getTimeout();
+
+    const timeoutPromise = new Promise<ProjectContext>((_, reject) => {
+        setTimeout(() => reject(new Error(`Scan timeout after ${timeout}ms`)), timeout);
+    });
+
+    try {
+        return await Promise.race([
+            scanProjectInternal(cwd, options),
+            timeoutPromise
+        ]);
+    } catch (error) {
+        if (error instanceof Error && error.message.includes('timeout')) {
+            // Return empty result on timeout
+            return {
+                techStack: 'Unknown',
+                fileStructure: [],
+                scoredFiles: [],
+                openFiles: []
+            };
+        }
+        throw error;
+    }
+}
+
+/**
+ * Public wrapper for scanProjectLegacy with timeout support
+ */
+async function scanProjectLegacy(
+    cwd: string,
+    intentAnalysis?: IntentAnalysis,
+    onProgress?: (msg: string) => void,
+    sessionBoosts?: Array<{ path: string; boostFactor: number; reason: string }>
+): Promise<ProjectContext> {
+    const timeout = getTimeout();
+
+    const timeoutPromise = new Promise<ProjectContext>((_, reject) => {
+        setTimeout(() => reject(new Error(`Scan timeout after ${timeout}ms`)), timeout);
+    });
+
+    try {
+        return await Promise.race([
+            scanProjectLegacyInternal(cwd, intentAnalysis, onProgress, sessionBoosts),
+            timeoutPromise
+        ]);
+    } catch (error) {
+        if (error instanceof Error && error.message.includes('timeout')) {
+            // Return empty result on timeout
+            return {
+                techStack: 'Unknown',
+                fileStructure: [],
+                scoredFiles: [],
+                openFiles: []
+            };
+        }
+        throw error;
+    }
 }

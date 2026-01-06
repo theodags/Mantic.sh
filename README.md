@@ -7,11 +7,14 @@
 
 A structural code search engine for AI agents. Provides sub-500ms file ranking across massive codebases without embeddings, vector databases, or external dependencies.
 
-## What's New in v1.0.12
+## What's New in v1.0.13
 
-- **Critical Fix**: Implemented missing high-confidence scoring path in scanProjectLegacy that was causing "Scanner failed to produce scored files" error
-- **Proper Scoring**: All queries now receive proper scores from BrainInspiredScorer regardless of intent confidence level
-- **Reliability**: Fixed the root cause of undefined scoredFiles that was triggering the broken fallback in v1.0.10
+- **Environment Variables**: Implemented all three documented environment variables that were previously non-functional
+  - `MANTIC_IGNORE_PATTERNS` - Custom glob patterns to exclude files (comma-separated)
+  - `MANTIC_MAX_FILES` - Limit number of files returned (default: 300)
+  - `MANTIC_TIMEOUT` - Search timeout in milliseconds (default: 5000ms)
+- **Bug Fixes**: Fixed glob pattern matching regex that was preventing ignore patterns from working correctly
+- **Performance**: Added timeout wrapper to prevent hanging on extremely large repositories
 
 ## Table of Contents
 
