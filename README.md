@@ -7,11 +7,11 @@
 
 A structural code search engine for AI agents. Provides sub-500ms file ranking across massive codebases without embeddings, vector databases, or external dependencies.
 
-## What's New in v1.0.11
+## What's New in v1.0.12
 
-- **Critical Fix**: Removed broken fallback scoring logic that assigned scores as `100 - index`, causing files at position 900+ in large repositories to receive massive negative scores (-900 to -9527)
-- **Error Handling**: Scanner now throws explicit error if scoring fails instead of silently producing incorrect results
-- **Improved Reliability**: All files now receive proper scores from SmartFilter or BrainInspiredScorer
+- **Critical Fix**: Implemented missing high-confidence scoring path in scanProjectLegacy that was causing "Scanner failed to produce scored files" error
+- **Proper Scoring**: All queries now receive proper scores from BrainInspiredScorer regardless of intent confidence level
+- **Reliability**: Fixed the root cause of undefined scoredFiles that was triggering the broken fallback in v1.0.10
 
 ## Table of Contents
 

@@ -491,13 +491,28 @@ async function scanProjectLegacy(
     let scoredFilesWithScores: FileScore[] | undefined;
 
     if (intentAnalysis && intentAnalysis.confidence > 0.5) {
-        // ... (not used in this test case usually, assuming confidence > 0.5)
-        // Wait, "WebRTC video pipeline" -> Intent?
-        // Index.ts -> processRequest -> intent analyzer.
+        // High confidence - use brain scorer with intent
+        const keywords = intentAnalysis.keywords || [];
+        if (keywords.length > 0) {
+            progress('Applying brain-inspired scoring (high confidence)...');
+            const brainScorer = new BrainInspiredScorer(undefined, sessionBoosts);
+            const scoredFiles = await brainScorer.rankFiles(
+                files,
+                keywords,
+                intentAnalysis,
+                cwd
+            );
+            scoredFilesWithScores = scoredFiles;
+            limitedFiles = scoredFiles.map(f => f.path);
+            progress(`Brain scoring: ${files.length} → ${scoredFiles.length} files`);
+        } else {
+            // No keywords - just take first 300 files
+            limitedFiles = files.slice(0, 300);
+            progress(`Using first 300 files (no keywords provided)`);
+        }
     } else {
         // Low confidence or no intent - use brain scorer with available keywords
         const keywords = intentAnalysis?.keywords || [];
-        // Force keywords for test if needed, but let's see logic flow
 
         if (keywords.length > 0 && intentAnalysis) {
             progress('Applying brain-inspired scoring...');
