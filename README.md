@@ -8,14 +8,13 @@
 
 A structural code search engine for AI agents. Provides sub-500ms file ranking across massive codebases without embeddings, vector databases, or external dependencies.
 
-## What's New in v1.0.13
+## What's New in v1.0.15
 
-- **Environment Variables**: Implemented all three documented environment variables that were previously non-functional
-  - `MANTIC_IGNORE_PATTERNS` - Custom glob patterns to exclude files (comma-separated)
-  - `MANTIC_MAX_FILES` - Limit number of files returned (default: 300)
-  - `MANTIC_TIMEOUT` - Search timeout in milliseconds (default: 5000ms)
-- **Bug Fixes**: Fixed glob pattern matching regex that was preventing ignore patterns from working correctly
-- **Performance**: Added timeout wrapper to prevent hanging on extremely large repositories
+- **Chromium Support**: Fixed timeout bug - now handles 481k+ file repos (increased default timeout to 30s)
+- **Improved Ranking**: Two-pass scoring with function/class name extraction - exact matches now rank first
+- **Multi-Language Support**: Added patterns for Python (`def`), Rust (`fn`), and Go (`func`)
+- **Configurable Limits**: New `MANTIC_FUNCTION_SCAN_LIMIT` env var for tuning accuracy vs performance
+- **Better Keyword Matching**: Handles camelCase, snake_case, and individual keyword matching
 
 ## Table of Contents
 
@@ -191,9 +190,10 @@ Mantic works out of the box with zero configuration for most projects.
 ### Environment Variables
 
 ```bash
-MANTIC_MAX_FILES=5000        # Maximum files to scan
-MANTIC_TIMEOUT=5000          # Search timeout in ms
-MANTIC_IGNORE_PATTERNS=...   # Custom glob patterns to ignore
+MANTIC_MAX_FILES=5000         # Maximum files to scan
+MANTIC_TIMEOUT=30000          # Search timeout in ms (default: 30000)
+MANTIC_IGNORE_PATTERNS=...    # Custom glob patterns to ignore
+MANTIC_FUNCTION_SCAN_LIMIT=30 # Top files to scan for function names (default: dynamic, max 50)
 ```
 
 ## License

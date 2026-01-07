@@ -578,6 +578,73 @@ export class BrainInspiredScorer {
     }
 
     /**
+     * Lightweight extraction of function and class names from file content
+     * Uses regex patterns - much faster than full AST parsing
+     * Only called for top-ranked files to minimize performance impact
+     */
+    private async extractNamesFromFile(filepath: string, projectRoot: string): Promise<Set<string>> {
+        try {
+            const fullPath = path.join(projectRoot, filepath);
+            const content = await fs.readFile(fullPath, 'utf-8');
+
+            const names = new Set<string>();
+            const ext = path.extname(filepath).toLowerCase();
+
+            // Language-specific patterns
+            let patterns: RegExp[] = [];
+
+            // TypeScript/JavaScript
+            if (['.ts', '.tsx', '.js', '.jsx'].includes(ext)) {
+                patterns = [
+                    /function\s+([a-zA-Z_$][a-zA-Z0-9_$]*)/g,
+                    /const\s+([a-zA-Z_$][a-zA-Z0-9_$]*)\s*=\s*(?:async\s+)?(?:function|\()/g,
+                    /export\s+(?:async\s+)?function\s+([a-zA-Z_$][a-zA-Z0-9_$]*)/g,
+                    /class\s+([a-zA-Z_$][a-zA-Z0-9_$]*)/g,
+                    /export\s+(?:default\s+)?class\s+([a-zA-Z_$][a-zA-Z0-9_$]*)/g,
+                    /interface\s+([a-zA-Z_$][a-zA-Z0-9_$]*)/g,
+                    /type\s+([a-zA-Z_$][a-zA-Z0-9_$]*)/g,
+                ];
+            }
+            // Python
+            else if (ext === '.py') {
+                patterns = [
+                    /def\s+([a-zA-Z_][a-zA-Z0-9_]*)/g,
+                    /class\s+([a-zA-Z_][a-zA-Z0-9_]*)/g,
+                ];
+            }
+            // Rust
+            else if (ext === '.rs') {
+                patterns = [
+                    /fn\s+([a-zA-Z_][a-zA-Z0-9_]*)/g,
+                    /struct\s+([a-zA-Z_][a-zA-Z0-9_]*)/g,
+                    /enum\s+([a-zA-Z_][a-zA-Z0-9_]*)/g,
+                    /trait\s+([a-zA-Z_][a-zA-Z0-9_]*)/g,
+                ];
+            }
+            // Go
+            else if (ext === '.go') {
+                patterns = [
+                    /func\s+([a-zA-Z_][a-zA-Z0-9_]*)/g,
+                    /type\s+([a-zA-Z_][a-zA-Z0-9_]*)\ s+struct/g,
+                    /type\s+([a-zA-Z_][a-zA-Z0-9_]*)\s+interface/g,
+                ];
+            }
+
+            for (const pattern of patterns) {
+                let match;
+                while ((match = pattern.exec(content)) !== null) {
+                    names.add(match[1]);
+                }
+            }
+
+            return names;
+        } catch {
+            // If we can't read the file, return empty set
+            return new Set<string>();
+        }
+    }
+
+    /**
      * PHASE 4: Multi-Stage Cascade
      * Like DCS constraint sequencing - apply filters in optimal order
      */
@@ -607,7 +674,7 @@ export class BrainInspiredScorer {
             }
         }
 
-        // Stage 3: Sort and take top results
+        // Stage 3: Sort and take top candidates for content analysis
         scored.sort((a, b) => {
             if (b.score !== a.score) {
                 return b.score - a.score;
@@ -615,6 +682,80 @@ export class BrainInspiredScorer {
             // Deterministic tie-breaker
             return a.path.localeCompare(b.path);
         });
+
+        // Stage 4: SECOND PASS - Extract function/class names from top N files
+        // Configurable via MANTIC_FUNCTION_SCAN_LIMIT (default: 50)
+        const scanLimit = process.env.MANTIC_FUNCTION_SCAN_LIMIT
+            ? parseInt(process.env.MANTIC_FUNCTION_SCAN_LIMIT, 10)
+            : Math.min(50, Math.max(20, Math.floor(scored.length * 0.1))); // Dynamic: 10% of results, min 20, max 50
+        const topCandidates = scored.slice(0, scanLimit);
+
+        if (topCandidates.length > 0 && keywords.length > 0) {
+            // Extract names from top candidates in parallel
+            const nameExtractions = await Promise.all(
+                topCandidates.map(async (file) => {
+                    const names = await this.extractNamesFromFile(file.path, projectRoot);
+                    return { path: file.path, names };
+                })
+            );
+
+            // Prepare keyword variations for matching
+            // "extract exports" -> ["extractexports", "extractExports"]
+            const keywordVariations = new Set<string>();
+            const joinedKeywords = keywords.join('').toLowerCase();
+            keywordVariations.add(joinedKeywords);
+
+            // Also try camelCase version
+            const camelCase = keywords.map((kw, i) =>
+                i === 0 ? kw.toLowerCase() : kw.charAt(0).toUpperCase() + kw.slice(1).toLowerCase()
+            ).join('');
+            keywordVariations.add(camelCase.toLowerCase());
+
+            // Apply boosts based on function/class name matches
+            for (const { path: filePath, names } of nameExtractions) {
+                const file = scored.find(f => f.path === filePath);
+                if (!file) continue;
+
+                let boost = 0;
+
+                for (const name of names) {
+                    const nameLower = name.toLowerCase();
+
+                    // Check for exact match with any keyword variation
+                    for (const variation of keywordVariations) {
+                        if (nameLower === variation) {
+                            boost = Math.max(boost, 200); // HUGE boost for exact match
+                        } else if (nameLower.includes(variation) || variation.includes(nameLower)) {
+                            boost = Math.max(boost, 100); // Good boost for partial match
+                        }
+                    }
+
+                    // Also check individual keywords
+                    for (const keyword of keywords) {
+                        const kwLower = keyword.toLowerCase();
+                        if (nameLower.includes(kwLower)) {
+                            boost = Math.max(boost, 50); // Moderate boost for keyword in name
+                        }
+                    }
+                }
+
+                if (boost > 0) {
+                    file.score += boost;
+                    if (!file.reasons.includes('function-name-match')) {
+                        file.reasons.push('function-name-match');
+                    }
+                }
+            }
+
+            // Re-sort after applying boosts
+            scored.sort((a, b) => {
+                if (b.score !== a.score) {
+                    return b.score - a.score;
+                }
+                return a.path.localeCompare(b.path);
+            });
+        }
+
         const topFiles = scored.slice(0, 100);
 
         return topFiles;

@@ -92,7 +92,7 @@ function getTimeout(): number {
             return parsed;
         }
     }
-    return 5000; // Default 5 seconds
+    return 30000; // Default 30 seconds (increased for large repos like Chromium)
 }
 
 // Intent-based filtering: map categories to directory patterns
