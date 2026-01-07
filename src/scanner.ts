@@ -525,8 +525,10 @@ async function scanProjectLegacyInternal(
             progress(`Brain scoring: ${files.length} → ${scoredFiles.length} files`);
         } else {
             // No keywords - just take first 300 files
-            limitedFiles = files.slice(0, getMaxFiles());
-            progress(`Using first 300 files (no keywords provided)`);
+            // FIX: Do NOT slice here. Pass all files to scorer or just return them if skipping scoring.
+            // limitedFiles = files.slice(0, getMaxFiles());
+            limitedFiles = files;
+            progress(`Using all ${files.length} files (no high-confidence intent)`);
         }
     } else {
         // Low confidence or no intent - use brain scorer with available keywords
@@ -550,8 +552,15 @@ async function scanProjectLegacyInternal(
                 limitedFiles = files;
                 progress(`Passing ${files.length} files to processRequest (skipScoring=true)`);
             } else {
+                // FIX: If we have no keywords and aren't skipping scoring, we typically want to return *some* default set.
+                // However, for "list files" or general usage, we might want everything.
+                // CURRENT BEHAVIOR: Default to 300 if truly no input.
+                // IMPROVEMENT: If the user provided NO query, maybe 300 is fine.
+                // BUT: In 'processRequest', if keywords are empty, we might still want to search?
+                // Actually, if there are NO keywords, we can't score. So 300 random files is as good as any.
+                // Let's keep the limit ONLY for the "no keywords at all" case to prevent dumping 10k files on empty query.
                 limitedFiles = files.slice(0, getMaxFiles());
-                progress(`Using first 300 files (no keywords provided)`);
+                progress(`Using first ${limitedFiles.length} files (no keywords provided)`);
             }
         }
     }
