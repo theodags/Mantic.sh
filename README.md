@@ -8,13 +8,13 @@
 
 A structural code search engine for AI agents. Provides sub-500ms file ranking across massive codebases without embeddings, vector databases, or external dependencies.
 
-## What's New in v1.0.18
+## What's New in v1.0.20
 
-- **Native Accelerator**: Replaced `fast-glob` with `git ls-files` / `fd` for **15x faster file scanning** (cold start on Chromium dropped from 30s to <2s).
-- **Parallel Processing Engine**: Dedicated worker threads for scoring large repositories (50k+ files).
-- **Process Optimization**: Fixed CLI hang issues, ensuring instant exit after results.
-- **Prefix-Based Filtering**: Optimized ignore pattern matching for massive file lists.
-- **Improved Semantic Matches**: Better handling of deep path intent.
+- **Scoped Search**: Added `--path` argument to restrict matching to subdirectories (e.g., `mantic "query" --path src`) (Fixed #7).
+- **Improved Scanner Stability**: Fixed crashes on empty search results or complex queries (e.g., Chinese characters) (Fixed #2).
+- **Windows / VS Code Support**: Resolved MCP server startup crashes by fixing CommonJS/ESM compatibility (Fixed #8, #1).
+
+See the [CHANGELOG](https://github.com/marcoaapfortes/Mantic.sh/blob/main/CHANGELOG.md) for all the release notes.
 
 ## Table of Contents
 

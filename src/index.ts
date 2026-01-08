@@ -16,6 +16,7 @@ program
 // Main search command (default)
 program
     .argument('[query...]', 'Search query')
+    .option('-p, --path <dir>', 'Restrict search to specific path')
     .option('-q, --quiet', 'Minimal output')
     .option('--json', 'Output as JSON (default)')
     .option('--files', 'Output file paths only')

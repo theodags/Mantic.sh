@@ -12,8 +12,15 @@ import { buildDependencyGraph } from './dependency-graph.js';
 import { analyzeMultipleImpacts } from './impact-analyzer.js';
 import { ParallelMantic } from './parallel-mantic.js';
 
+import * as path from 'path';
+
 export async function processRequest(userPrompt: string, options: any): Promise<string> {
     const startTime = Date.now();
+
+    // Determine target directory (default to CWD)
+    const targetDir = options.path
+        ? path.resolve(process.cwd(), options.path)
+        : process.cwd();
 
     // Determine output format
     const outputFormat = options.json ? 'json'
@@ -30,7 +37,7 @@ export async function processRequest(userPrompt: string, options: any): Promise<
 
         // PHASE 2: Scan Project
         // Fast brain scorer (no semantic parsing for machine mode)
-        const projectContext = await scanProject(process.cwd(), {
+        const projectContext = await scanProject(targetDir, {
             intentAnalysis,
             parseSemantics: false,
             onProgress: undefined,
@@ -65,7 +72,7 @@ export async function processRequest(userPrompt: string, options: any): Promise<
                 const { ManticEngine } = await import('./brain-scorer.js');
                 const engine = new ManticEngine();
                 // Note: rankFiles expects files, keywords, intent, cwd
-                return engine.rankFiles(allFiles, intentAnalysis.keywords, intentAnalysis, process.cwd());
+                return engine.rankFiles(allFiles, intentAnalysis.keywords, intentAnalysis, targetDir);
             };
         }
 
@@ -93,8 +100,10 @@ export async function processRequest(userPrompt: string, options: any): Promise<
         });
 
         // If scoredFiles is missing, something went wrong in the scanner
-        if (!scoredFiles || scoredFiles.length === 0) {
-            throw new Error('Scanner failed to produce scored files. This is a bug.');
+        if (!scoredFiles) {
+            // Warn but don't crash - return empty array
+            console.warn('Scanner produced no results.');
+            scoredFiles = [];
         }
 
         // Apply context filters
@@ -127,7 +136,7 @@ export async function processRequest(userPrompt: string, options: any): Promise<
                 f => f.endsWith('.ts') || f.endsWith('.tsx') || f.endsWith('.js') || f.endsWith('.jsx')
             );
 
-            const graph = await buildDependencyGraph(allFiles, process.cwd());
+            const graph = await buildDependencyGraph(allFiles, targetDir);
 
             // Analyze impact for top files (limit to top 10 to avoid slowdown)
             const topFilePaths = contextResult.files.slice(0, 10).map(f => f.path);
@@ -156,7 +165,7 @@ export async function processRequest(userPrompt: string, options: any): Promise<
         // PHASE 4: Session Recording (if active)
         if (options.session) {
             const { SessionManager } = await import('./session-manager.js');
-            const sm = new SessionManager(process.cwd());
+            const sm = new SessionManager(targetDir);
             // Try to load session (handles ID or name)
             const session = await sm.loadSession(options.session);
             if (session) {
