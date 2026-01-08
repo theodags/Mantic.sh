@@ -11,7 +11,7 @@ const program = new Command();
 program
     .name('mantic')
     .description('Mantic: The reference implementation of cognitive code search.')
-    .version('1.0.12');
+    .version('1.0.20');
 
 // Main search command (default)
 program
