@@ -48,7 +48,14 @@ const IGNORE_PATTERNS = [
     '**/.vscode/**',
     '**/*.min.js',
     '**/*.min.css',
-    '**/*.map'
+    '**/*.map',
+    // Windows protected directories
+    '**/AppData/**',
+    '**/ElevatedDiagnostics/**',
+    '**/$Recycle.Bin/**',
+    '**/System Volume Information/**',
+    '**/Windows/**',
+    '**/ProgramData/**'
 ];
 
 /**

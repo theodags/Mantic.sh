@@ -1,5 +1,27 @@
 # Changelog
 
+## 1.0.24
+
+**Windows EPERM Fix Release**
+
+Fixes critical Windows permission errors when scanning protected directories.
+
+### Windows Permission Fixes
+- **EPERM Errors**: Enhanced handling of Windows protected directories
+  - Added specific EPERM/EACCES error detection and helpful user messages
+  - Auto-ignores Windows system folders: AppData, ElevatedDiagnostics, System Volume Information, Windows, ProgramData, $Recycle.Bin
+  - Prevents crashes when running from user home directories on Windows
+  - Provides actionable error messages directing users to run from project directories
+
+### Technical Details
+- Files modified: `native-loader.ts`, `scanner.ts`
+- Maintains backward compatibility
+- Builds successfully with TypeScript
+
+**Issue Resolved**: [#10](https://github.com/marcoaapfortes/Mantic.sh/issues/10) - Windows EPERM operation errors
+
+---
+
 ## 1.0.23
 
 **MCP Stability Release**

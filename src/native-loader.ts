@@ -154,8 +154,16 @@ export class NativeLoader {
                 deep: 10
             });
         } catch (error) {
-            // Handle any errors gracefully (e.g., permission denied)
-            console.error('[NativeLoader] fast-glob error:', error instanceof Error ? error.message : String(error));
+            // Handle permission errors gracefully (EPERM, EACCES on Windows)
+            const errMsg = error instanceof Error ? error.message : String(error);
+
+            if (errMsg.includes('EPERM') || errMsg.includes('EACCES')) {
+                console.error('[NativeLoader] Permission denied accessing some directories. Skipping protected folders.');
+                console.error('Tip: Run from your project directory, not system folders like C:\\Users\\<user>\\AppData');
+                return [];
+            }
+
+            console.error('[NativeLoader] fast-glob error:', errMsg);
             return [];
         }
     }
