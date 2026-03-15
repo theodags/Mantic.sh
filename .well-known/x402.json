@@ -1,0 +1,12 @@
+{
+  "name": "theodags/Mantic.sh",
+  "description": "GitHub agent/MCP project",
+  "accepts": [
+    {
+      "network": "eip155:8453",
+      "asset": "USDC",
+      "address": "YOUR_WALLET_ADDRESS"
+    }
+  ],
+  "resources": []
+}
